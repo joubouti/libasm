@@ -1,7 +1,6 @@
 
 section .text
 	global _ft_strlen
-	global _ft_putstr
 	global _ft_strcpy
 	global _ft_strcmp
     global _ft_write
@@ -13,32 +12,24 @@ _exit:
     syscall
     ret
 _ft_strlen:
-    push rdi
+    push rbx
 	mov rbx, 0
 _ft_strloop:
-	inc rdi
-	inc rbx
 	mov cl, [rdi]
 	cmp cl, 0
-	jne _ft_strloop
-    pop rdi
-	mov rdx, rbx
-	mov rax, rdx
+	jne _ft_strlenne
+	; mov rdx, rbx
+	mov rax, rbx
+    pop rbx
 	ret
-
-_ft_putstr:
-    call _ft_strlen
-    mov rdx, rax
-    mov rax, 0x2000004
-    mov rsi, rdi
-    mov rdi, 1
-    syscall
-    ret
+_ft_strlenne:
+    inc rdi
+	inc rbx
+    jmp _ft_strloop
 
 _ft_strcpy:
-    ;call _ft_strlen
-    ;add rdi, rax
-    mov rbx, 0
+    push rbx
+    mov rbx, rdi
 _ft_scloop:
 	mov cl, [rsi]
     mov [rdi], cl
@@ -46,31 +37,38 @@ _ft_scloop:
     inc rdi
     cmp cl, 0
 	jne _ft_scloop
+    mov rax, rbx
+    pop rbx
     ret
 
 _ft_strcmp:
+    push rbx
     mov rbx, 0
-_ft_strcmpl:
-    mov cl, [rdi]
-    mov dl, [rsi]
+    mov rax, 0
+    mov r13, 0
+_ft_cmploop:
+    mov r13b, [rdi]
+    mov bl, [rsi]
+    cmp r13b, bl
+    je _ft_cmpe
+    jne _ft_cmpne
+    pop rbx
+    ret
+
+_ft_cmpne:
+    sub r13, rbx
+    mov rax, r13
+    pop rbx
+    ret
+
+_ft_cmpe:
+    cmp bl, 0
+    je _ft_cmpz
     inc rdi
     inc rsi
-    cmp cl, dl
-    je _ft_strcmpl
-    jg _ft_topos
-    jl _ft_toneg
-    ret
-_ft_toneg:
-    sub dl, cl
-    xor rcx, rcx
-    mov cl, dl
-    neg rcx
-    mov rax, rcx
-    ret
-_ft_topos:
-    sub cl, dl
-    xor rax, rax
-    mov al, cl
+    jmp _ft_cmploop
+_ft_cmpz:
+    pop rbx
     ret
 
 _ft_write:
@@ -95,6 +93,7 @@ _ft_strdup:
    mov r12, rdi
    call _ft_strlen
    mov rdi, rax
+   inc rdi
    extern _malloc
    call _malloc
    cmp rax, 0
